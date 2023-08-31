@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<html lang="en-us">
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+    <title>Unity WebGL Player | Webapp</title>
+    <style>
+        html,
+        body {
+            width: 100%;
+            height: 100%;
+            padding: 0;
+            margin: 0;
+            color: black;
+            position: relative;
+            background-color: #DBDFFC;
+      }
+
+      video_player_box, canvas, iframe, video, figure {
+        margin: 0;
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        -ms-transform: translate(-50%, -50%);
+        transform: translate(-50%, -50%);
+        width: 100%; 
+        height: 100%; 
+        background-color: black; 
+        max-width: 1120px; 
+        max-height: 630px; 
+      }
+	  
+	  #playpausebtn {
+		margin: 0;
+        position: absolute;
+		width: 100%;
+		height: 100%;
+        top: 50%;
+        left: 50%;
+        -ms-transform: translate(-50%, -50%);
+        transform: translate(-50%, -50%);
+	  }
+
+	  /*
+	  figcaption {
+		position: absolute;
+		bottom: -40px;
+		align-items: center;
+		background: #eaeaea;
+		width: 100%;
+		max-width: 1120px;
+		height: 40px;
+		padding: 0;
+		margin: 0;
+	  }
+	  
+	  #progress {
+		width: 82%;
+		max-width: 1120px;
+		height: 38px;
+		margin: 0;
+		padding: 0;
+	  }
+	  */
+	  #my-video, #videosrc {
+		max-width: 100vw;
+		padding: 0;
+		margin: 0;
+	  }
+
+	/*audio::-webkit-media-controls,
+	video::-webkit-media-controls {
+		display: none;
+	}
+	
+	audio::-webkit-media-controls-timeline,
+	video::-webkit-media-controls-timeline {
+		display: block;
+	}*/
+	
+	/* For the loader spiner */
+	.loader {
+	  border: 16px solid #f3f3f3;
+	  border-radius: 50%;
+	  border-top: 16px solid #3498db;
+	  width: 120px;
+	  height: 120px;
+	  -webkit-animation: spin 2s linear infinite; /* Safari */
+	  animation: spin 2s linear infinite;
+	}
+
+	/* Safari */
+	@-webkit-keyframes spin {
+	  0% { -webkit-transform: rotate(0deg); }
+	  100% { -webkit-transform: rotate(360deg); }
+	}
+
+	@keyframes spin {
+	  0% { transform: rotate(0deg); }
+	  100% { transform: rotate(360deg); }
+	}
+	
+	.modal-body img {
+		height: 148px;
+		width: 148px;
+	}
+
+	.btn-primary, .btn-primary:hover, .btn-primary:active, .btn-primary:visited {
+		background-color: #7D2BE6 !important;
+		font-size: 24px !important;
+	}
+
+    </style>
+	<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css" integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm" crossorigin="anonymous">
+  </head>
+  <body style="text-align: center">
+	<!-- Book Not Free Popup Modal -->
+	<div class="modal fade" id="bookNotFreeModal" tabindex="-1" role="dialog" aria-labelledby="bookNotFreeModalTitle" aria-hidden="true">
+		<div class="modal-dialog modal-dialog-centered" role="document">
+		  <div class="modal-content">
+			<div class="modal-header text-center">
+			  <h2 class="modal-title text-center" id="subscriptionNeededModalLongTitle">Subscription needed</h2>
+			  <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+				<span aria-hidden="true">&times;</span>
+			  </button>
+			</div>
+			<div class="modal-body text-center">
+			  ...
+			</div>
+			<div class="modal-footer  justify-content-center">
+			  <button id="btn-webgl-signin" type="button" class="btn btn-primary subscriptionGateFooterBtn" data-dismiss="modal" onclick="openLoginAndCloseIFrame()">Sign In</button>
+			  <button type="button" class="btn btn-primary subscriptionGateFooterBtn" data-dismiss="modal" onclick="openShopAndCloseIFrame()">Subscribe</button>
+			  <button type="button" class="btn btn-primary subscriptionGateFooterBtn" data-dismiss="modal" onclick="closeIFrame()">Close</button>
+			</div>
+		  </div>
+		</div>
+	</div>
+	<div id="theSpinnerLoaderForMenu" class="loader" style="z-index: 1000; position: absolute; right: 0; left: 0; top: 0; bottom: 0; margin: auto; display: none;"></div>
+    <canvas id="unity-canvas" style="background-color: #DBDFFC"></canvas>
+	<div id="video_player_box" style="text-align: center; display: none;">
+		<div id="theSpinnerLoader" class="loader" style="z-index: 1000; position: absolute; right: 0; left: 0; top: 0; bottom: 0; margin: auto; display: none;"></div>
+		<figure>
+			<video id="my-video" playsinline autoplay controls poster="./bookr-class-logo-with-bg.jpg">
+				<source id="videosrc" src="" type="video/mp4" />
+					To view this video please enable JavaScript, and consider upgrading to a
+					web browser that
+			</video>
+			<!-- Custom Progressbar - don't delete it, it can be useful in future
+			<!--figcaption>
+				<progress id="progress" max="100" value="0">Progress</progress>
+			</figcaption-->
+		</figure>
+		<!-- Custom Play Button - don't delete it, it can be useful in future -->
+		<!--div id="video_controls_bar" style="opacity: 0">
+			<!--img id="playpausebtn" onclick="playPause(this,'my-video')" src="white-play-icon-png-4.jpg"/-->
+			<!--img id="playpausebtn" onclick="playPause(this,'my-video')"/-->
+		<!--/div-->
+	</div>
+	<!-- Original video tag and content was: -->
+    <!--video id="my-video" controls >
+      <source id="videosrc" src="https://bkrapi-win.v2.bookrclass.com/convertedBooks/ID97_20211112130024.mp4" type="video/mp4" />
+        To view this video please enable JavaScript, and consider upgrading to a
+        web browser that
+    </video-->
+    <ul id="book-list"></ul>
+	<script src="https://code.jquery.com/jquery-3.2.1.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js" integrity="sha384-ApNbgh9B+Y1QKtv3Rn7W3mgPxhU9K/ScQsAP7hUibX39j7fakFPskvXusvfa0b4Q" crossorigin="anonymous"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js" integrity="sha384-JZR6Spejh4U02d8jOt6vLEHfe/JQGiRRSQQxSfFWpi1MquVdAyjUar5+76PVCmYl" crossorigin="anonymous"></script>
+    <script src="Build/webgl-staging-test.loader.js"></script>
+    <script src="baseFunctions.js"></script>
+    <script src="index.js"></script>
+    <script>
+      if (isVideoPlayerNeeded()) {         
+          LoadMobile();
+
+          var myobj = document.getElementById("unity-canvas");
+          myobj.remove();
+      } else {
+          var myobj = document.getElementById("video_player_box");
+          myobj.remove();
+          let myobj2 = document.getElementById("book-list");
+          myobj2.remove();
+
+          createUnityInstance(document.querySelector("#unity-canvas"), {
+            dataUrl: "Build/44bc18ad5ecf98c8a7b13e38a091ec04.data.unityweb",
+            frameworkUrl: "Build/a181cc1ca7ccf1ec34f17be7822614c0.js.unityweb",
+            codeUrl: "Build/1b80aee3698885b6ec618297d8e470e6.wasm.unityweb",
+            streamingAssetsUrl: "StreamingAssets",
+            companyName: "Bookr",
+            productName: "Webapp",
+            productVersion: "1.2.6",
+          }).then((unityInstance) => {
+			window.unityInstance = unityInstance;
+		  });
+      }
+    </script>
+  </body>
+</html>
